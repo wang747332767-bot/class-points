@@ -290,15 +290,18 @@
     const API_BASE = '';
     const socket = io();
 
+    // ---------- 全局数据 ----------
     let STUDENTS = [];
     let TASKS = [];
     let currentMode = 'student';
     let currentStudentId = null;
-    let pendingChanges = [];
     let notifications = [];
     let leaderSelected = new Set();
     let leaderGroup = '';
     let currentTeacherTab = 'students';
+
+    // 统一的本地操作队列
+    let localOps = [];
 
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
@@ -328,7 +331,7 @@
 
     // ---------- 工具函数 ----------
     function getStudentById(id) {
-        return STUDENTS.find(s => s._id === id || s.id === id);
+        return STUDENTS.find(s => s._id === id);
     }
     function addNotification(text) {
         notifications.unshift(text);
@@ -344,29 +347,72 @@
         }
     }
     function renderPendingList() {
-        if (pendingChanges.length === 0) {
+        if (localOps.length === 0) {
             pendingEntries.innerHTML = '暂无待上传操作';
             pendingBadge.style.display = 'none';
         } else {
-            pendingBadge.textContent = pendingChanges.length;
+            pendingBadge.textContent = localOps.length;
             pendingBadge.style.display = 'block';
-            pendingEntries.innerHTML = pendingChanges.map((c, i) => `
-                <div class="pending-item">
-                    <span>${c.studentName} ${c.change>0?'+'+c.change:c.change} (${c.reason})</span>
+            pendingEntries.innerHTML = localOps.map((op, i) => {
+                let desc = '';
+                switch (op.type) {
+                    case 'changePoints':
+                        desc = `${op.data.studentName} ${op.data.change>0?'+'+op.data.change:op.data.change} (${op.data.reason})`;
+                        break;
+                    case 'addStudent':
+                        desc = `添加学生：${op.data.name} (${op.data.group})`;
+                        break;
+                    case 'updateStudent':
+                        desc = `编辑学生：${getStudentById(op.data.id)?.name || op.data.id} 属性变更`;
+                        break;
+                    case 'deleteStudent':
+                        desc = `删除学生：${op.data.name}`;
+                        break;
+                    case 'saveTasks':
+                        desc = `更新任务列表`;
+                        break;
+                    default:
+                        desc = '未知操作';
+                }
+                return `<div class="pending-item">
+                    <span>${desc}</span>
                     <button data-index="${i}">撤销</button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
             $$('#pendingEntries button').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const index = parseInt(e.target.dataset.index);
-                    const removed = pendingChanges.splice(index, 1)[0];
-                    const student = getStudentById(removed.studentId);
-                    if (student) student.points -= removed.change;
+                    const removed = localOps.splice(index, 1)[0];
+                    // 撤销本地更改
+                    if (removed.type === 'changePoints') {
+                        const student = getStudentById(removed.data.userId);
+                        if (student) student.points -= removed.data.change;
+                    } else if (removed.type === 'addStudent') {
+                        STUDENTS = STUDENTS.filter(s => s._id !== removed.data._id);
+                    } else if (removed.type === 'deleteStudent') {
+                        // 恢复被删除的学生（从快照恢复）
+                        if (removed.snapshot) STUDENTS.push(removed.snapshot);
+                    } else if (removed.type === 'updateStudent') {
+                        // 恢复旧值
+                        if (removed.oldValues) {
+                            const student = getStudentById(removed.data.id);
+                            if (student) Object.assign(student, removed.oldValues);
+                        }
+                    } else if (removed.type === 'saveTasks') {
+                        // 恢复任务列表到旧值
+                        if (removed.oldTasks) TASKS = removed.oldTasks;
+                    }
                     renderPendingList();
-                    updateCurrentPointsDisplay();
+                    refreshAllUIs();
                 });
             });
         }
+    }
+
+    // 添加操作到本地队列
+    function pushLocalOp(op) {
+        localOps.push(op);
+        renderPendingList();
     }
 
     // ---------- API ----------
@@ -378,49 +424,109 @@
         const res = await fetch(API_BASE + '/api/tasks');
         TASKS = await res.json();
     }
-    async function applyPointsChangeRemote(userId, change, reason) {
-        return fetch(`${API_BASE}/api/students/${userId}/changePoints`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ change, reason })
-        });
-    }
 
-    // 离线操作
-    function offlineChangePoints(userId, change, reason) {
-        const student = getStudentById(userId);
-        if (!student) return;
-        student.points += change;
-        pendingChanges.push({ studentId: userId, studentName: student.name, change, reason });
-        renderPendingList();
-        updateCurrentPointsDisplay();
-        addNotification(`(本地) ${student.name} ${reason} ${change>0?'+'+change:change}`);
-    }
-
-    // 上传所有待提交
-    async function uploadAllPending() {
-        if (pendingChanges.length === 0) {
+    // ---------- 核心：统一上传 ----------
+    async function uploadAllLocalOps() {
+        if (localOps.length === 0) {
             alert('没有待上传的操作');
             return;
         }
         uploadBtn.disabled = true;
         uploadBtn.textContent = '⏳ 上传中...';
+
+        // 临时ID映射表：用于将临时ID替换为服务器返回的真实ID
+        const idMap = {};
         let successCount = 0;
-        for (const change of pendingChanges) {
-            try {
-                await applyPointsChangeRemote(change.studentId, change.change, change.reason);
+
+        try {
+            for (const op of localOps) {
+                // 如果涉及临时ID，替换为真实ID
+                if (op.type === 'changePoints' && idMap[op.data.userId]) {
+                    op.data.userId = idMap[op.data.userId];
+                }
+                if (op.type === 'updateStudent' && idMap[op.data.id]) {
+                    op.data.id = idMap[op.data.id];
+                }
+                if (op.type === 'deleteStudent' && idMap[op.data.id]) {
+                    op.data.id = idMap[op.data.id];
+                }
+
+                switch (op.type) {
+                    case 'changePoints':
+                        await fetch(`${API_BASE}/api/students/${op.data.userId}/changePoints`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ change: op.data.change, reason: op.data.reason })
+                        });
+                        break;
+
+                    case 'addStudent':
+                        const addRes = await fetch(API_BASE + '/api/students', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: op.data.name, group: op.data.group, points: op.data.points || 0, isLeader: op.data.isLeader || false })
+                        });
+                        if (addRes.ok) {
+                            const newStudent = await addRes.json();
+                            // 将临时ID映射到真实ID
+                            idMap[op.data._id] = newStudent._id;
+                            // 更新本地 STUDENTS 数组中对应记录的 ID
+                            const localStudent = STUDENTS.find(s => s._id === op.data._id);
+                            if (localStudent) localStudent._id = newStudent._id;
+                        }
+                        break;
+
+                    case 'updateStudent':
+                        await fetch(`${API_BASE}/api/students/${op.data.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(op.data.changes)
+                        });
+                        break;
+
+                    case 'deleteStudent':
+                        await fetch(`${API_BASE}/api/students/${op.data.id}`, { method: 'DELETE' });
+                        break;
+
+                    case 'saveTasks':
+                        await fetch(`${API_BASE}/api/tasks/batch`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(op.data.tasks)
+                        });
+                        break;
+                }
                 successCount++;
-            } catch (err) {
-                alert(`上传失败：${change.studentName} 的操作未保存`);
             }
+
+            // 清空队列
+            localOps = [];
+            renderPendingList();
+            addNotification(`✅ 成功上传 ${successCount} 条操作`);
+
+            // 从服务器重新拉取最新数据以保证同步
+            await fetchStudents();
+            await fetchTasks();
+            refreshAllUIs();
+        } catch (err) {
+            alert(`上传出错：${err.message}`);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '📤 上传数据 <span class="badge" id="pendingBadge" style="display:none;">0</span>';
         }
-        pendingChanges = [];
-        renderPendingList();
-        uploadBtn.disabled = false;
-        uploadBtn.innerHTML = '📤 上传数据 <span class="badge" id="pendingBadge" style="display:none;">0</span>';
-        addNotification(`✅ 成功上传 ${successCount} 条操作`);
-        await fetchStudents();
+    }
+
+    // ---------- 本地操作（学生加减分）----------
+    function applyPointsLocally(userId, change, reason) {
+        const student = getStudentById(userId);
+        if (!student) return;
+        student.points += change;
+        pushLocalOp({
+            type: 'changePoints',
+            data: { userId, studentName: student.name, change, reason }
+        });
         updateCurrentPointsDisplay();
+        addNotification(`(本地) ${student.name} ${reason} ${change>0?'+'+change:change}`);
     }
 
     // ---------- 学生界面 ----------
@@ -454,7 +560,7 @@
                 if (!currentStudentId) return alert('请先选择学生');
                 const points = parseInt(btn.dataset.points);
                 const reason = btn.dataset.reason;
-                offlineChangePoints(currentStudentId, points, reason);
+                applyPointsLocally(currentStudentId, points, reason);
             });
         });
         $('#customReasonBtn')?.addEventListener('click', () => {
@@ -464,7 +570,7 @@
             if (isNaN(points) || points === 0) return alert('请输入非零整数');
             const reason = prompt('原因：', points>0?'自定义加分':'自定义扣分');
             if (reason) {
-                offlineChangePoints(currentStudentId, points, reason);
+                applyPointsLocally(currentStudentId, points, reason);
                 input.value = '';
             }
         });
@@ -477,7 +583,6 @@
             leaderGroup = student.group;
             return true;
         }
-        // 如果当前选中的不是组长，自动选择第一个组长
         const firstLeader = STUDENTS.find(s => s.isLeader);
         if (firstLeader) {
             currentStudentId = firstLeader._id;
@@ -498,8 +603,8 @@
                 <div class="name">${m.name}</div>
                 <div class="points">✨ ${m.points}</div>
                 <div class="micro-btns" style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
-                    <div class="micro-btn minus" style="width:30px;height:30px;border-radius:50%;border:2px solid #E0E6ED;background:white;font-weight:700;cursor:pointer;">-</div>
-                    <div class="micro-btn plus" style="width:30px;height:30px;border-radius:50%;border:2px solid #E0E6ED;background:white;font-weight:700;cursor:pointer;">+</div>
+                    <div class="micro-btn minus">-</div>
+                    <div class="micro-btn plus">+</div>
                 </div>
             </div>`).join('');
         memberGrid.onclick = (e) => {
@@ -508,9 +613,8 @@
             const id = card.dataset.id;
             if (e.target.classList.contains('micro-btn')) {
                 const delta = e.target.classList.contains('minus') ? -1 : 1;
-                applyPointsChangeRemote(id, delta, '组长微调').then(() => {
-                    fetchStudents().then(() => renderLeaderPanel());
-                });
+                applyPointsLocally(id, delta, '组长微调');
+                renderLeaderPanel();
                 return;
             }
             leaderSelected.has(id) ? leaderSelected.delete(id) : leaderSelected.add(id);
@@ -525,28 +629,26 @@
             <button class="batch-btn" id="customBatchBtn" style="background:#8E44AD;">📌 自定义批量</button>
             <button class="batch-btn" id="clearSelectionBtn" style="background:#E67E22;">取消选中</button>`;
         $$('.batch-btn[data-points]').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', () => {
                 if (leaderSelected.size === 0) return alert('请选择组员');
                 const points = parseInt(btn.dataset.points);
                 const reason = btn.dataset.reason;
                 for (const id of leaderSelected) {
-                    await applyPointsChangeRemote(id, points, reason);
+                    applyPointsLocally(id, points, reason);
                 }
-                await fetchStudents();
                 leaderSelected.clear();
                 renderLeaderPanel();
             });
         });
-        $('#customBatchBtn')?.addEventListener('click', async () => {
+        $('#customBatchBtn')?.addEventListener('click', () => {
             if (leaderSelected.size === 0) return alert('请选组员');
             const points = parseInt(prompt('自定义分值：', '5'));
             if (isNaN(points)) return;
             const reason = prompt('原因：', points>0?'自定义加分':'自定义扣分');
             if (reason) {
                 for (const id of leaderSelected) {
-                    await applyPointsChangeRemote(id, points, reason);
+                    applyPointsLocally(id, points, reason);
                 }
-                await fetchStudents();
                 leaderSelected.clear();
                 renderLeaderPanel();
             }
@@ -584,6 +686,53 @@
     }
 
     // ---------- 教师管理 ----------
+    function showStudentForm(id) {
+        const name = prompt('姓名：');
+        if (!name) return;
+        const group = prompt('小组：');
+        const points = parseInt(prompt('积分：', '0'));
+        const isLeader = confirm('设为组长？');
+        if (id) {
+            // 编辑现有学生
+            const student = getStudentById(id);
+            if (!student) return;
+            const oldValues = { name: student.name, group: student.group, points: student.points, isLeader: student.isLeader };
+            student.name = name;
+            student.group = group;
+            student.points = points;
+            student.isLeader = isLeader;
+            pushLocalOp({
+                type: 'updateStudent',
+                data: { id, changes: { name, group, points, isLeader } },
+                oldValues
+            });
+        } else {
+            // 添加新学生，使用临时ID
+            const tempId = 'temp_' + Date.now() + Math.random();
+            const newStudent = { _id: tempId, name, group, points, isLeader };
+            STUDENTS.push(newStudent);
+            pushLocalOp({
+                type: 'addStudent',
+                data: { _id: tempId, name, group, points, isLeader }
+            });
+        }
+        refreshAllUIs();
+    }
+
+    async function deleteStudentLocal(id) {
+        const student = getStudentById(id);
+        if (!student) return;
+        // 保存快照用于撤销
+        const snapshot = { ...student };
+        STUDENTS = STUDENTS.filter(s => s._id !== id);
+        pushLocalOp({
+            type: 'deleteStudent',
+            data: { id, name: student.name },
+            snapshot
+        });
+        refreshAllUIs();
+    }
+
     async function renderTeacherStudentsPanel() {
         let html = `<button class="btn-sm btn-add" id="addStudentBtn">+ 添加学生</button>
         <table><tr><th>姓名</th><th>小组</th><th>积分</th><th>组长</th><th>操作</th></tr>
@@ -592,58 +741,18 @@
             <td>
                 <button class="btn-sm btn-edit" data-id="${s._id}">编辑</button>
                 <button class="btn-sm btn-delete" data-id="${s._id}">删除</button>
-                ${!s.isLeader ? `<button class="btn-sm set-leader" data-id="${s._id}">设组长</button>` : `<button class="btn-sm unset-leader" data-id="${s._id}">取消组长</button>`}
             </td>
         </tr>`).join('')}
         </table>`;
         teacherPanelContainer.innerHTML = html;
         $('#addStudentBtn')?.addEventListener('click', () => showStudentForm());
         $$('.btn-edit').forEach(b => b.onclick = () => showStudentForm(b.dataset.id));
-        $$('.btn-delete').forEach(b => b.onclick = async () => {
-            if (confirm('删除？')) {
-                await fetch(`${API_BASE}/api/students/${b.dataset.id}`, { method: 'DELETE' });
-                await fetchStudents();
-                renderTeacherStudentsPanel();
-            }
-        });
-        $$('.set-leader').forEach(b => b.onclick = async () => {
-            await fetch(`${API_BASE}/api/students/${b.dataset.id}`, {
-                method: 'PUT',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ isLeader: true })
-            });
-            await fetchStudents();
-            renderTeacherStudentsPanel();
-        });
-        $$('.unset-leader').forEach(b => b.onclick = async () => {
-            await fetch(`${API_BASE}/api/students/${b.dataset.id}`, {
-                method: 'PUT',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ isLeader: false })
-            });
-            await fetchStudents();
-            renderTeacherStudentsPanel();
+        $$('.btn-delete').forEach(b => b.onclick = () => {
+            if (confirm('确定删除？')) deleteStudentLocal(b.dataset.id);
         });
     }
-    function showStudentForm(id) {
-        const name = prompt('姓名：');
-        if (!name) return;
-        const group = prompt('小组：');
-        const points = parseInt(prompt('积分：', '0'));
-        const isLeader = confirm('设为组长？');
-        const data = { name, group, points, isLeader };
-        const url = id ? `${API_BASE}/api/students/${id}` : `${API_BASE}/api/students`;
-        const method = id ? 'PUT' : 'POST';
-        fetch(url, {
-            method,
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify(data)
-        }).then(async () => {
-            await fetchStudents();
-            renderTeacherStudentsPanel();
-        });
-    }
-    async function renderTeacherTasksPanel() {
+
+    function renderTeacherTasksPanel() {
         let html = `<button class="btn-sm btn-add" id="addTaskBtn">+ 添加</button>
         <table><tr><th>图标</th><th>名称</th><th>分值</th><th>操作</th></tr>
         ${TASKS.map((t,i) => `<tr><td>${t.icon}</td><td>${t.name}</td><td style="color:${t.points>=0?'green':'red'}">${t.points}</td>
@@ -652,29 +761,55 @@
         </table>`;
         teacherPanelContainer.innerHTML = html;
         $('#addTaskBtn')?.addEventListener('click', () => {
-            const icon = prompt('图标emoji：', '⭐');
+            const icon = prompt('图标：', '⭐');
             const name = prompt('名称：');
-            const points = parseInt(prompt('分值（可负）：', '1'));
+            const points = parseInt(prompt('分值：', '1'));
             if (name && !isNaN(points)) {
+                const oldTasks = JSON.parse(JSON.stringify(TASKS));
                 TASKS.push({ icon, name, points });
-                saveTasks();
+                recordTasksChange(oldTasks);
             }
         });
-        $$('.btn-delete').forEach(b => b.onclick = () => {
-            TASKS.splice(parseInt(b.dataset.index), 1);
-            saveTasks();
+        $$('.btn-edit').forEach(b => {
+            b.addEventListener('click', () => {
+                const idx = parseInt(b.dataset.index);
+                const t = TASKS[idx];
+                const icon = prompt('图标', t.icon);
+                const name = prompt('名称', t.name);
+                const points = parseInt(prompt('分值', t.points));
+                if (name && !isNaN(points)) {
+                    const oldTasks = JSON.parse(JSON.stringify(TASKS));
+                    TASKS[idx] = { icon, name, points };
+                    recordTasksChange(oldTasks);
+                }
+            });
+        });
+        $$('.btn-delete').forEach(b => {
+            b.addEventListener('click', () => {
+                const idx = parseInt(b.dataset.index);
+                const oldTasks = JSON.parse(JSON.stringify(TASKS));
+                TASKS.splice(idx, 1);
+                recordTasksChange(oldTasks);
+            });
         });
     }
-    async function saveTasks() {
-        await fetch(`${API_BASE}/api/tasks/batch`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify(TASKS)
-        });
-        await fetchTasks();
-        renderStudentTasks();
-        renderTeacherTasksPanel();
+
+    function recordTasksChange(oldTasks) {
+        // 如果之前已经有 saveTasks 操作，则更新其 oldTasks 为最早的那个
+        const existingOp = localOps.find(op => op.type === 'saveTasks');
+        if (existingOp) {
+            existingOp.data.tasks = JSON.parse(JSON.stringify(TASKS));
+            // 维持最早的 oldTasks
+            renderPendingList();
+        } else {
+            pushLocalOp({
+                type: 'saveTasks',
+                data: { tasks: JSON.parse(JSON.stringify(TASKS)) },
+                oldTasks
+            });
+        }
     }
+
     function renderTeacherDataPanel() {
         teacherPanelContainer.innerHTML = `<button class="export-btn" id="exportCsvBtn">📥 导出CSV</button>`;
         $('#exportCsvBtn').onclick = () => {
@@ -686,10 +821,20 @@
             a.click();
         };
     }
+
     function renderTeacherPanel() {
         if (currentTeacherTab === 'students') renderTeacherStudentsPanel();
         else if (currentTeacherTab === 'tasks') renderTeacherTasksPanel();
         else if (currentTeacherTab === 'data') renderTeacherDataPanel();
+    }
+
+    function refreshAllUIs() {
+        populateStudentSelect(currentMode === 'leader');
+        updateCurrentPointsDisplay();
+        renderStudentTasks();
+        if (currentMode === 'leader') renderLeaderPanel();
+        if (rankingPage.style.display !== 'none') renderRanking();
+        if (teacherPage.style.display !== 'none') renderTeacherPanel();
     }
 
     // ---------- 页面切换 ----------
@@ -703,13 +848,10 @@
         hideAllPages();
         if (page === 'student') {
             studentPage.style.display = 'block';
-            populateStudentSelect(false);  // 显示全部学生
+            populateStudentSelect(false);
             renderStudentTasks();
-            renderPendingList();
         } else if (page === 'leader') {
-            // 组长模式：下拉框只显示组长
             populateStudentSelect(true);
-            // 确保当前选中的是组长，否则自动跳到第一个组长
             if (!setLeaderGroupByCurrentStudent()) {
                 alert('没有组长，请先在教师管理中设置组长');
                 return;
@@ -733,7 +875,7 @@
         }
     }
 
-    // ---------- 事件监听 ----------
+    // 事件监听
     modeSelector.addEventListener('click', e => {
         if (e.target.classList.contains('mode-btn')) {
             currentMode = e.target.dataset.mode;
@@ -742,11 +884,9 @@
             showPage(currentMode);
         }
     });
-
     studentSelect.addEventListener('change', () => {
         currentStudentId = studentSelect.value;
         updateCurrentPointsDisplay();
-        // 如果当前是组长模式，切换下拉组长应更新管理的组
         if (currentMode === 'leader') {
             const student = getStudentById(currentStudentId);
             if (student && student.isLeader) {
@@ -754,18 +894,16 @@
                 leaderSelected.clear();
                 renderLeaderPanel();
             } else {
-                // 理论上不会发生，因为下拉已过滤为组长，但做防御
                 setLeaderGroupByCurrentStudent();
                 renderLeaderPanel();
             }
         }
     });
-
     $('#toRankingBtn').addEventListener('click', () => showPage('ranking'));
     $('#backToMainBtn').addEventListener('click', () => showPage(currentMode));
     $('#toTeacherBtn').addEventListener('click', () => showPage('teacher'));
     $('#backFromTeacherBtn').addEventListener('click', () => showPage(currentMode));
-    uploadBtn.addEventListener('click', uploadAllPending);
+    uploadBtn.addEventListener('click', uploadAllLocalOps);
     document.querySelector('.teacher-tabs')?.addEventListener('click', e => {
         if (e.target.classList.contains('teacher-tab')) {
             currentTeacherTab = e.target.dataset.tab;
@@ -775,22 +913,19 @@
         }
     });
 
-    // WebSocket 更新
-    socket.on('pointUpdate', async (data) => {
-        await fetchStudents();
-        updateCurrentPointsDisplay();
-        if (currentMode === 'leader') renderLeaderPanel();
-        if (rankingPage.style.display !== 'none') renderRanking();
+    // WebSocket：当本地有未上传操作时，忽略服务器推送，避免覆盖本地更改
+    socket.on('pointUpdate', (data) => {
+        if (localOps.length === 0) {
+            fetchStudents().then(refreshAllUIs);
+        }
         addNotification(`${data.name} ${data.reason} ${data.change>0?'+'+data.change:data.change}`);
     });
-    socket.on('dataChanged', async () => {
-        await fetchStudents();
-        await fetchTasks();
-        populateStudentSelect(currentMode === 'leader');
-        updateCurrentPointsDisplay();
-        if (currentMode === 'leader') renderLeaderPanel();
-        if (rankingPage.style.display !== 'none') renderRanking();
-        if (teacherPage.style.display !== 'none') renderTeacherPanel();
+    socket.on('dataChanged', () => {
+        if (localOps.length === 0) {
+            fetchStudents().then(() => {
+                fetchTasks().then(refreshAllUIs);
+            });
+        }
     });
 
     // ---------- 自动预录学生名单 ----------
@@ -874,7 +1009,7 @@
         renderStudentTasks();
         renderPendingList();
         showPage('student');
-        addNotification('系统已启动，操作先本地生效，记得点上传哦');
+        addNotification('系统已启动，所有操作先本地生效，记得点上传哦');
     })();
 })();
 </script>
