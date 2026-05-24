@@ -30,7 +30,7 @@
         }
         .app-container {
             width: 100%;
-            max-width: 1100px;
+            max-width: 950px;
             background: var(--card);
             border-radius: 24px;
             box-shadow: var(--shadow);
@@ -62,18 +62,12 @@
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
-            white-space: nowrap;
         }
-        .mode-btn.active {
-            background: white;
-            color: #2C3E50;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
+        .mode-btn.active { background: white; color: #2C3E50; }
         .student-selector {
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 10px;
         }
         .student-selector select {
             padding: 10px 16px;
@@ -85,131 +79,125 @@
             color: #2C3E50;
             cursor: pointer;
             outline: none;
-            min-width: 140px;
+            min-width: 150px;
         }
         .current-points {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             background: rgba(255,255,255,0.2);
-            padding: 8px 18px;
+            padding: 6px 18px;
             border-radius: 30px;
         }
-        .points-value { font-size: 32px; color: #FFD700; }
+        .upload-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            position: relative;
+            margin-left: 8px;
+        }
+        .upload-btn .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+        }
         .nav-link {
             color: white;
             text-decoration: none;
             font-weight: 500;
             opacity: 0.9;
-            margin-left: 8px;
+            margin-left: 12px;
             font-size: 15px;
             cursor: pointer;
         }
-        .nav-link:hover { opacity: 1; text-decoration: underline; }
+        .nav-link:hover { opacity: 1; }
         .main-content { padding: 24px; min-height: 400px; }
         .tasks-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
             margin: 24px 0;
         }
         .task-btn {
-            background: var(--card);
+            background: white;
             border: 2px solid #E0E6ED;
-            border-radius: var(--radius);
-            padding: 20px 10px;
+            border-radius: 16px;
+            padding: 16px 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            font-size: 18px;
             font-weight: 600;
-            color: #2C3E50;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
+            transition: 0.2s;
         }
         .task-btn.positive { border-color: #A9DFBF; background: #EAFAF1; }
-        .task-btn.positive:hover { border-color: #27AE60; background: #D5F5E3; }
+        .task-btn.positive:hover { background: #D5F5E3; }
         .task-btn.negative { border-color: #F5B7B1; background: #FDEDEC; }
-        .task-btn.negative:hover { border-color: #E74C3C; background: #FADBD8; }
-        .task-icon { font-size: 32px; }
-        .task-points { padding: 4px 12px; border-radius: 20px; font-weight: 700; }
+        .task-btn.negative:hover { background: #FADBD8; }
+        .task-icon { font-size: 28px; }
+        .task-points { padding: 3px 12px; border-radius: 20px; font-weight: 700; }
         .task-points.positive { background: #D5F5E3; color: #1E8449; }
         .task-points.negative { background: #FADBD8; color: #B03A2E; }
+        .pending-list {
+            background: #FFF8E1;
+            border: 1px solid #FFE082;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .pending-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px dashed #E0E0E0;
+        }
+        .pending-item button { background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: 700; }
         .notification-bar {
             background: #F0F4FA;
             border-radius: 30px;
-            padding: 12px 20px;
-            margin-top: 20px;
-            overflow: hidden;
-            white-space: nowrap;
+            padding: 10px 20px;
+            margin-top: 12px;
             font-weight: 500;
         }
-        .leader-panel { display: none; }
+        .leader-panel, .ranking-page, .teacher-page { display: none; }
         .member-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 14px;
             margin: 20px 0;
         }
         .member-card {
             background: white;
             border: 2px solid #E0E6ED;
-            border-radius: var(--radius);
+            border-radius: 16px;
             padding: 14px;
             text-align: center;
             cursor: pointer;
             position: relative;
         }
         .member-card.selected { border-color: var(--primary); background: #EBF5FF; }
-        .member-card .name { font-weight: 700; font-size: 18px; }
-        .member-card .points { font-size: 20px; font-weight: 700; color: var(--primary); }
-        .micro-btns { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-        .micro-btn {
-            width: 32px; height: 32px; border-radius: 50%; border: 2px solid #E0E6ED;
-            background: white; font-weight: 700; cursor: pointer; font-size: 18px;
-        }
-        .micro-btn.minus:hover { background: #FADBD8; border-color: #E74C3C; }
-        .micro-btn.plus:hover { background: #D5F5E3; border-color: #27AE60; }
         .batch-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .batch-btn {
-            padding: 12px 20px; border-radius: 30px; border: none; font-weight: 600;
+            padding: 10px 18px; border-radius: 30px; border: none; font-weight: 600;
             cursor: pointer; color: white;
         }
         .batch-btn.positive { background: #27AE60; }
         .batch-btn.negative { background: #E74C3C; }
-        .operation-log {
-            background: #F8F9FA; border-radius: 12px; padding: 12px;
-            max-height: 150px; overflow-y: auto; font-size: 14px;
-        }
-        .ranking-page { display: none; }
-        .ranking-list { background: white; border-radius: var(--radius); overflow: hidden; }
+        .ranking-list { background: white; border-radius: 16px; overflow: hidden; }
         .ranking-item {
-            display: flex; align-items: center; padding: 16px 20px;
+            display: flex; align-items: center; padding: 14px 20px;
             border-bottom: 1px solid #F0F0F0; gap: 16px;
         }
-        .ranking-item .rank { font-weight: 700; font-size: 20px; width: 36px; }
-        .ranking-item .name { flex: 1; font-weight: 600; }
-        .ranking-item .progress-bar {
-            flex: 2; height: 10px; background: #ECF0F1; border-radius: 10px;
-            overflow: hidden; margin: 0 16px;
-        }
-        .ranking-item .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #F39C12, #F1C40F);
-            border-radius: 10px; transition: width 0.5s;
-        }
-        .ranking-item .points { font-weight: 700; font-size: 18px; min-width: 60px; text-align: right; }
-        .teacher-page { display: none; }
-        .teacher-tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #E0E6ED; }
-        .teacher-tab {
-            padding: 8px 20px; border-radius: 20px 20px 0 0; border: none;
-            background: transparent; font-weight: 600; cursor: pointer; color: #7F8C8D;
-        }
-        .teacher-tab.active { background: var(--primary); color: white; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #E0E6ED; }
         th { background: #F4F7FC; }
@@ -220,28 +208,24 @@
         .btn-edit { background: #EBF5FF; color: #2980B9; }
         .btn-delete { background: #FDEDEC; color: #C0392B; }
         .btn-add { background: #D5F5E3; color: #27AE60; }
-        .export-btn {
-            background: #27AE60; color: white; border: none; padding: 12px 24px;
-            border-radius: 30px; font-weight: 600; cursor: pointer;
-        }
-        .back-btn {
-            background: none; border: 2px solid white; color: white;
-            padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer;
-        }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="navbar">
-        <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <div class="mode-selector" id="modeSelector">
                 <button class="mode-btn active" data-mode="student">👤 学生</button>
                 <button class="mode-btn" data-mode="leader">👥 组长</button>
             </div>
-            <div class="student-selector">
+            <div class="student-selector" id="studentSelectorContainer">
                 <select id="studentSelect"></select>
-                <div class="current-points">✨ <span class="points-value" id="currentPointsDisplay">0</span></div>
+                <div class="current-points">✨ <span id="currentPointsDisplay">0</span></div>
             </div>
+            <button class="upload-btn" id="uploadBtn">
+                📤 上传数据
+                <span class="badge" id="pendingBadge" style="display:none;">0</span>
+            </button>
         </div>
         <div>
             <span class="nav-link" id="toRankingBtn">🏆 排行榜</span>
@@ -253,6 +237,10 @@
     <div class="main-content" id="studentPage">
         <h2>选择一项为你的积分变动</h2>
         <div class="tasks-grid" id="studentTasks"></div>
+        <div class="pending-list" id="pendingList">
+            <strong>📋 待上传操作</strong>
+            <div id="pendingEntries">暂无待上传操作</div>
+        </div>
         <div class="notification-bar">📢 <span id="notificationStream">等待动态...</span></div>
     </div>
 
@@ -264,7 +252,7 @@
         </div>
         <div class="member-grid" id="memberGrid"></div>
         <div class="batch-actions" id="leaderBatchActions"></div>
-        <div class="operation-log">
+        <div class="operation-log" style="background:#F8F9FA; border-radius:12px; padding:12px; margin-top:12px;">
             <strong>📋 操作记录</strong>
             <div id="logEntries">暂无记录</div>
         </div>
@@ -288,7 +276,7 @@
             <h2>🔑 教师管理后台</h2>
             <button class="back-btn" id="backFromTeacherBtn">← 返回主页</button>
         </div>
-        <div class="teacher-tabs">
+        <div class="teacher-tabs" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #E0E6ED;">
             <button class="teacher-tab active" data-tab="students">👨‍🎓 学生管理</button>
             <button class="teacher-tab" data-tab="tasks">📋 任务配置</button>
             <button class="teacher-tab" data-tab="data">📊 数据导出</button>
@@ -299,7 +287,6 @@
 
 <script>
 (function() {
-    // API 同源，无需指定域名
     const API_BASE = '';
     const socket = io();
 
@@ -307,23 +294,27 @@
     let TASKS = [];
     let currentMode = 'student';
     let currentStudentId = null;
-    let leaderGroup = '';
-    let selectedMembers = new Set();
+    let pendingChanges = [];
     let notifications = [];
+    let leaderSelected = new Set();
+    let leaderGroup = '';
     let currentTeacherTab = 'students';
 
-    // DOM 元素
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
+    // DOM 元素
     const modeSelector = $('#modeSelector');
     const studentSelect = $('#studentSelect');
     const currentPointsDisplay = $('#currentPointsDisplay');
+    const uploadBtn = $('#uploadBtn');
+    const pendingBadge = $('#pendingBadge');
     const studentPage = $('#studentPage');
     const leaderPage = $('#leaderPage');
     const rankingPage = $('#rankingPage');
     const teacherPage = $('#teacherPage');
     const studentTasksContainer = $('#studentTasks');
+    const pendingEntries = $('#pendingEntries');
     const notificationStream = $('#notificationStream');
     const leaderNotificationStream = $('#leaderNotificationStream');
     const memberGrid = $('#memberGrid');
@@ -339,63 +330,106 @@
     function getStudentById(id) {
         return STUDENTS.find(s => s._id === id || s.id === id);
     }
-
     function addNotification(text) {
         notifications.unshift(text);
         if (notifications.length > 10) notifications.pop();
         const stream = notifications.join('    ');
-        if (notificationStream) notificationStream.textContent = stream;
-        if (leaderNotificationStream) leaderNotificationStream.textContent = stream;
+        if (notificationStream) notificationStream.textContent = stream || '暂无动态';
+        if (leaderNotificationStream) leaderNotificationStream.textContent = stream || '暂无动态';
     }
-
-    // 广播处理（由服务器推送或本地调用）
-    function handlePointUpdate(data) {
-        const student = getStudentById(data.userId);
-        if (student) student.points = data.newPoints;
-        addNotification(`${data.name} ${data.reason} ${data.change>0?'+'+data.change:data.change}`);
-        if (currentMode === 'student' && currentStudentId === data.userId) {
-            currentPointsDisplay.textContent = data.newPoints;
+    function updateCurrentPointsDisplay() {
+        const student = getStudentById(currentStudentId);
+        if (student && currentPointsDisplay) {
+            currentPointsDisplay.textContent = student.points;
         }
-        if (currentMode === 'leader') renderLeaderPanel();
-        if (rankingPage.style.display !== 'none') renderRanking();
-        if (teacherPage.style.display !== 'none' && currentTeacherTab === 'students') renderTeacherStudentsPanel();
+    }
+    function renderPendingList() {
+        if (pendingChanges.length === 0) {
+            pendingEntries.innerHTML = '暂无待上传操作';
+            pendingBadge.style.display = 'none';
+        } else {
+            pendingBadge.textContent = pendingChanges.length;
+            pendingBadge.style.display = 'block';
+            pendingEntries.innerHTML = pendingChanges.map((c, i) => `
+                <div class="pending-item">
+                    <span>${c.studentName} ${c.change>0?'+'+c.change:c.change} (${c.reason})</span>
+                    <button data-index="${i}">撤销</button>
+                </div>
+            `).join('');
+            $$('#pendingEntries button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    const removed = pendingChanges.splice(index, 1)[0];
+                    const student = getStudentById(removed.studentId);
+                    if (student) student.points -= removed.change;
+                    renderPendingList();
+                    updateCurrentPointsDisplay();
+                });
+            });
+        }
     }
 
-    // ---------- API 调用 ----------
+    // ---------- API ----------
     async function fetchStudents() {
         const res = await fetch(API_BASE + '/api/students');
         STUDENTS = await res.json();
     }
-
     async function fetchTasks() {
         const res = await fetch(API_BASE + '/api/tasks');
         TASKS = await res.json();
     }
-
-    async function applyPointsChange(userId, change, reason) {
-        const res = await fetch(`${API_BASE}/api/students/${userId}/changePoints`, {
+    async function applyPointsChangeRemote(userId, change, reason) {
+        return fetch(`${API_BASE}/api/students/${userId}/changePoints`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ change, reason })
         });
-        if (!res.ok) {
-            const err = await res.json();
-            alert(err.message);
-            return false;
-        }
-        const updated = await res.json();
-        const student = getStudentById(userId);
-        if (student) student.points = updated.points;
-        return true;
     }
 
-    // ---------- 页面渲染 ----------
+    // 离线操作
+    function offlineChangePoints(userId, change, reason) {
+        const student = getStudentById(userId);
+        if (!student) return;
+        student.points += change;
+        pendingChanges.push({ studentId: userId, studentName: student.name, change, reason });
+        renderPendingList();
+        updateCurrentPointsDisplay();
+        addNotification(`(本地) ${student.name} ${reason} ${change>0?'+'+change:change}`);
+    }
+
+    // 上传所有待提交
+    async function uploadAllPending() {
+        if (pendingChanges.length === 0) {
+            alert('没有待上传的操作');
+            return;
+        }
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '⏳ 上传中...';
+        let successCount = 0;
+        for (const change of pendingChanges) {
+            try {
+                await applyPointsChangeRemote(change.studentId, change.change, change.reason);
+                successCount++;
+            } catch (err) {
+                alert(`上传失败：${change.studentName} 的操作未保存`);
+            }
+        }
+        pendingChanges = [];
+        renderPendingList();
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '📤 上传数据 <span class="badge" id="pendingBadge" style="display:none;">0</span>';
+        addNotification(`✅ 成功上传 ${successCount} 条操作`);
+        // 刷新数据
+        await fetchStudents();
+        updateCurrentPointsDisplay();
+    }
+
+    // ---------- 学生界面 ----------
     function populateStudentSelect() {
-        studentSelect.innerHTML = STUDENTS.map(s => 
+        studentSelect.innerHTML = STUDENTS.map(s =>
             `<option value="${s._id}" ${s._id === currentStudentId ? 'selected' : ''}>${s.name} (${s.group})</option>`
         ).join('');
     }
-
     function renderStudentTasks() {
         studentTasksContainer.innerHTML = TASKS.map(t => {
             const positive = t.points >= 0;
@@ -408,102 +442,100 @@
             </div>`;
         }).join('') + `
             <div style="grid-column: span 2; display: flex; gap: 8px;">
-                <input type="number" id="customPoints" placeholder="自定义分值（可负）" style="flex:1; padding:10px; border-radius:20px; border:2px solid #E0E6ED;">
+                <input type="number" id="customPoints" placeholder="自定义分值" style="flex:1; padding:10px; border-radius:20px; border:2px solid #E0E6ED;">
                 <button id="customReasonBtn" style="padding:10px 20px; border-radius:20px; background:var(--primary); color:white; border:none; font-weight:600; cursor:pointer;">📌 自定义</button>
             </div>`;
         $$('.task-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', () => {
+                if (!currentStudentId) return alert('请先选择学生');
                 const points = parseInt(btn.dataset.points);
                 const reason = btn.dataset.reason;
-                if (!currentStudentId) return alert('请先选择学生');
-                await applyPointsChange(currentStudentId, points, reason);
+                offlineChangePoints(currentStudentId, points, reason);
             });
         });
-        $('#customReasonBtn')?.addEventListener('click', async () => {
+        $('#customReasonBtn')?.addEventListener('click', () => {
+            if (!currentStudentId) return alert('请先选择学生');
             const input = $('#customPoints');
             const points = parseInt(input.value);
             if (isNaN(points) || points === 0) return alert('请输入非零整数');
             const reason = prompt('原因：', points>0?'自定义加分':'自定义扣分');
-            if (reason && currentStudentId) {
-                await applyPointsChange(currentStudentId, points, reason);
+            if (reason) {
+                offlineChangePoints(currentStudentId, points, reason);
                 input.value = '';
             }
         });
     }
 
+    // ---------- 组长界面 ----------
     function renderLeaderPanel() {
         if (!leaderGroup) return;
         const members = STUDENTS.filter(s => s.group === leaderGroup);
         leaderGroupInfo.textContent = `组长管理：${leaderGroup}`;
         memberGrid.innerHTML = members.map(m => `
-            <div class="member-card ${selectedMembers.has(m._id)?'selected':''}" data-id="${m._id}">
+            <div class="member-card ${leaderSelected.has(m._id) ? 'selected' : ''}" data-id="${m._id}">
                 <div class="name">${m.name}</div>
                 <div class="points">✨ ${m.points}</div>
-                <div class="micro-btns">
-                    <div class="micro-btn minus">-</div>
-                    <div class="micro-btn plus">+</div>
+                <div class="micro-btns" style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
+                    <div class="micro-btn minus" style="width:30px;height:30px;border-radius:50%;border:2px solid #E0E6ED;background:white;font-weight:700;cursor:pointer;">-</div>
+                    <div class="micro-btn plus" style="width:30px;height:30px;border-radius:50%;border:2px solid #E0E6ED;background:white;font-weight:700;cursor:pointer;">+</div>
                 </div>
             </div>`).join('');
-        // 事件绑定省略（同上逻辑，通过事件委托处理）
-        // 为简化，我们使用事件委托在memberGrid上
-        memberGrid.onclick = async (e) => {
+        memberGrid.onclick = (e) => {
             const card = e.target.closest('.member-card');
             if (!card) return;
             const id = card.dataset.id;
             if (e.target.classList.contains('micro-btn')) {
                 const delta = e.target.classList.contains('minus') ? -1 : 1;
-                await applyPointsChange(id, delta, '组长微调');
-                addOperationLog(getStudentById(id).name, delta, '微调');
+                applyPointsChangeRemote(id, delta, '组长微调').then(() => {
+                    fetchStudents().then(() => renderLeaderPanel());
+                });
                 return;
             }
-            selectedMembers.has(id) ? selectedMembers.delete(id) : selectedMembers.add(id);
+            leaderSelected.has(id) ? leaderSelected.delete(id) : leaderSelected.add(id);
             renderLeaderPanel();
         };
-
         const batchHtml = TASKS.map(t => {
             const cls = t.points >= 0 ? 'positive' : 'negative';
             const sign = t.points >= 0 ? '+' : '';
             return `<button class="batch-btn ${cls}" data-points="${t.points}" data-reason="${t.name}">${t.icon} ${t.name} ${sign}${t.points}</button>`;
         }).join('');
-        leaderBatchActions.innerHTML = `<strong>已选${selectedMembers.size}人：</strong>${batchHtml}
+        leaderBatchActions.innerHTML = `<strong>已选${leaderSelected.size}人：</strong>${batchHtml}
             <button class="batch-btn" id="customBatchBtn" style="background:#8E44AD;">📌 自定义批量</button>
             <button class="batch-btn" id="clearSelectionBtn" style="background:#E67E22;">取消选中</button>`;
         $$('.batch-btn[data-points]').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (selectedMembers.size === 0) return alert('请选择组员');
+                if (leaderSelected.size === 0) return alert('请选择组员');
                 const points = parseInt(btn.dataset.points);
                 const reason = btn.dataset.reason;
-                for (const id of selectedMembers) {
-                    await applyPointsChange(id, points, reason);
-                    addOperationLog(getStudentById(id).name, points, reason);
+                for (const id of leaderSelected) {
+                    await applyPointsChangeRemote(id, points, reason);
                 }
+                await fetchStudents();
+                leaderSelected.clear();
+                renderLeaderPanel();
             });
         });
         $('#customBatchBtn')?.addEventListener('click', async () => {
-            if (selectedMembers.size === 0) return alert('请选择组员');
-            const points = parseInt(prompt('自定义分值（可负）：', '5'));
-            if (isNaN(points) || points === 0) return;
+            if (leaderSelected.size === 0) return alert('请选组员');
+            const points = parseInt(prompt('自定义分值：', '5'));
+            if (isNaN(points)) return;
             const reason = prompt('原因：', points>0?'自定义加分':'自定义扣分');
             if (reason) {
-                for (const id of selectedMembers) {
-                    await applyPointsChange(id, points, reason);
-                    addOperationLog(getStudentById(id).name, points, reason);
+                for (const id of leaderSelected) {
+                    await applyPointsChangeRemote(id, points, reason);
                 }
+                await fetchStudents();
+                leaderSelected.clear();
+                renderLeaderPanel();
             }
         });
         $('#clearSelectionBtn')?.addEventListener('click', () => {
-            selectedMembers.clear();
+            leaderSelected.clear();
             renderLeaderPanel();
         });
     }
 
-    let operationLogs = [];
-    function addOperationLog(name, change, reason) {
-        operationLogs.unshift(`${name} ${change>0?'+'+change:change} (${reason})`);
-        if (operationLogs.length > 20) operationLogs.pop();
-        logEntries.innerHTML = operationLogs.map(l => `<div>${l}</div>`).join('');
-    }
-
+    // ---------- 排行榜 ----------
     function renderRanking(filterGroup = '全部') {
         let filtered = filterGroup === '全部' ? STUDENTS : STUDENTS.filter(s => s.group === filterGroup);
         const sorted = [...filtered].sort((a,b) => b.points - a.points);
@@ -513,7 +545,7 @@
             return `<div class="ranking-item">
                 <span class="rank">${medal || i+1}</span>
                 <span class="name">${s.name} <small>${s.group}</small></span>
-                <div class="progress-bar"><div class="progress-fill" style="width:${(s.points/maxPoints)*100}%"></div></div>
+                <div class="progress-bar" style="flex:2; height:10px; background:#ECF0F1; border-radius:10px; overflow:hidden; margin:0 16px;"><div class="progress-fill" style="height:100%; width:${(s.points/maxPoints)*100}%; background:linear-gradient(90deg, #F39C12, #F1C40F); border-radius:10px;"></div></div>
                 <span class="points">✨ ${s.points}</span>
             </div>`;
         }).join('');
@@ -529,12 +561,11 @@
         groupAvgCards.innerHTML = avgs.join('');
     }
 
-    // 教师管理渲染函数（因篇幅省略完整细节，这里给出核心结构，调用API增删改）
+    // ---------- 教师管理 ----------
     async function renderTeacherStudentsPanel() {
-        const students = STUDENTS;
         let html = `<button class="btn-sm btn-add" id="addStudentBtn">+ 添加学生</button>
         <table><tr><th>姓名</th><th>小组</th><th>积分</th><th>组长</th><th>操作</th></tr>
-        ${students.map(s => `<tr>
+        ${STUDENTS.map(s => `<tr>
             <td>${s.name}</td><td>${s.group}</td><td>${s.points}</td><td>${s.isLeader?'👑是':'否'}</td>
             <td>
                 <button class="btn-sm btn-edit" data-id="${s._id}">编辑</button>
@@ -544,7 +575,6 @@
         </tr>`).join('')}
         </table>`;
         teacherPanelContainer.innerHTML = html;
-        // 事件绑定...
         $('#addStudentBtn')?.addEventListener('click', () => showStudentForm());
         $$('.btn-edit').forEach(b => b.onclick = () => showStudentForm(b.dataset.id));
         $$('.btn-delete').forEach(b => b.onclick = async () => {
@@ -555,7 +585,6 @@
             }
         });
         $$('.set-leader').forEach(b => b.onclick = async () => {
-            const student = getStudentById(b.dataset.id);
             await fetch(`${API_BASE}/api/students/${b.dataset.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type':'application/json'},
@@ -564,38 +593,38 @@
             await fetchStudents();
             renderTeacherStudentsPanel();
         });
-        // 省略 unset-leader 同理
+        $$('.unset-leader').forEach(b => b.onclick = async () => {
+            await fetch(`${API_BASE}/api/students/${b.dataset.id}`, {
+                method: 'PUT',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ isLeader: false })
+            });
+            await fetchStudents();
+            renderTeacherStudentsPanel();
+        });
     }
-
     function showStudentForm(id) {
-        // 弹出表单，提交时调用 POST 或 PUT /api/students
-        // 由于篇幅，这里用 prompt 简易实现
         const name = prompt('姓名：');
         if (!name) return;
         const group = prompt('小组：');
         const points = parseInt(prompt('积分：', '0'));
         const isLeader = confirm('设为组长？');
         const data = { name, group, points, isLeader };
-        if (id) {
-            fetch(`${API_BASE}/api/students/${id}`, {
-                method: 'PUT',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify(data)
-            }).then(() => { fetchStudents(); renderTeacherStudentsPanel(); });
-        } else {
-            fetch(`${API_BASE}/api/students`, {
-                method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify(data)
-            }).then(() => { fetchStudents(); renderTeacherStudentsPanel(); });
-        }
+        const url = id ? `${API_BASE}/api/students/${id}` : `${API_BASE}/api/students`;
+        const method = id ? 'PUT' : 'POST';
+        fetch(url, {
+            method,
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+        }).then(async () => {
+            await fetchStudents();
+            renderTeacherStudentsPanel();
+        });
     }
-
     async function renderTeacherTasksPanel() {
-        const tasks = TASKS;
         let html = `<button class="btn-sm btn-add" id="addTaskBtn">+ 添加</button>
         <table><tr><th>图标</th><th>名称</th><th>分值</th><th>操作</th></tr>
-        ${tasks.map((t,i) => `<tr><td>${t.icon}</td><td>${t.name}</td><td style="color:${t.points>=0?'green':'red'}">${t.points}</td>
+        ${TASKS.map((t,i) => `<tr><td>${t.icon}</td><td>${t.name}</td><td style="color:${t.points>=0?'green':'red'}">${t.points}</td>
             <td><button class="btn-sm btn-edit" data-index="${i}">编辑</button>
             <button class="btn-sm btn-delete" data-index="${i}">删除</button></td></tr>`).join('')}
         </table>`;
@@ -614,7 +643,6 @@
             saveTasks();
         });
     }
-
     async function saveTasks() {
         await fetch(`${API_BASE}/api/tasks/batch`, {
             method: 'POST',
@@ -623,10 +651,8 @@
         });
         await fetchTasks();
         renderStudentTasks();
-        if (currentMode === 'leader') renderLeaderPanel();
         renderTeacherTasksPanel();
     }
-
     function renderTeacherDataPanel() {
         teacherPanelContainer.innerHTML = `<button class="export-btn" id="exportCsvBtn">📥 导出CSV</button>`;
         $('#exportCsvBtn').onclick = () => {
@@ -638,50 +664,50 @@
             a.click();
         };
     }
-
     function renderTeacherPanel() {
         if (currentTeacherTab === 'students') renderTeacherStudentsPanel();
         else if (currentTeacherTab === 'tasks') renderTeacherTasksPanel();
         else if (currentTeacherTab === 'data') renderTeacherDataPanel();
     }
 
-    // 页面切换
-    function showPage(page) {
+    // ---------- 页面切换 ----------
+    function hideAllPages() {
         studentPage.style.display = 'none';
         leaderPage.style.display = 'none';
         rankingPage.style.display = 'none';
         teacherPage.style.display = 'none';
-        if (page === 'student') studentPage.style.display = 'block';
-        else if (page === 'leader') {
-            const student = getStudentById(currentStudentId);
-            if (student && student.isLeader) {
-                leaderGroup = student.group;
-            } else {
-                const firstLeader = STUDENTS.find(s => s.isLeader);
-                if (firstLeader) {
-                    currentStudentId = firstLeader._id;
-                    leaderGroup = firstLeader.group;
-                    studentSelect.value = currentStudentId;
-                } else return alert('没有组长');
-            }
+    }
+    function showPage(page) {
+        hideAllPages();
+        if (page === 'student') {
+            studentPage.style.display = 'block';
+            renderStudentTasks();
+            renderPendingList();
+        } else if (page === 'leader') {
+            const leaderStudent = STUDENTS.find(s => s.isLeader);
+            if (!leaderStudent) return alert('没有组长，请老师指定');
+            leaderGroup = leaderStudent.group;
+            leaderSelected.clear();
             leaderPage.style.display = 'block';
-            selectedMembers.clear();
             renderLeaderPanel();
         } else if (page === 'ranking') {
             rankingPage.style.display = 'block';
             renderRanking();
         } else if (page === 'teacher') {
             teacherPage.style.display = 'block';
-            document.querySelectorAll('.teacher-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector('.teacher-tab[data-tab="students"]').classList.add('active');
+            $$('.teacher-tab').forEach(t => t.classList.remove('active'));
+            $('.teacher-tab[data-tab="students"]').classList.add('active');
             currentTeacherTab = 'students';
             renderTeacherPanel();
         }
-        const student = getStudentById(currentStudentId);
-        if (student && currentPointsDisplay) currentPointsDisplay.textContent = student.points;
+        // 学生选择器在学生/组长模式都显示，排行榜和老师管理隐藏
+        const studentSelector = $('#studentSelectorContainer');
+        if (studentSelector) {
+            studentSelector.style.display = (page === 'ranking' || page === 'teacher') ? 'none' : 'flex';
+        }
     }
 
-    // 事件监听
+    // ---------- 事件监听 ----------
     modeSelector.addEventListener('click', e => {
         if (e.target.classList.contains('mode-btn')) {
             currentMode = e.target.dataset.mode;
@@ -692,21 +718,14 @@
     });
     studentSelect.addEventListener('change', () => {
         currentStudentId = studentSelect.value;
-        const student = getStudentById(currentStudentId);
-        if (student) {
-            currentPointsDisplay.textContent = student.points;
-            if (currentMode === 'leader' && !student.isLeader) {
-                alert('不是组长，切回学生');
-                currentMode = 'student';
-                document.querySelector('.mode-btn[data-mode="student"]').click();
-            }
-        }
+        updateCurrentPointsDisplay();
     });
     $('#toRankingBtn').addEventListener('click', () => showPage('ranking'));
     $('#backToMainBtn').addEventListener('click', () => showPage(currentMode));
     $('#toTeacherBtn').addEventListener('click', () => showPage('teacher'));
     $('#backFromTeacherBtn').addEventListener('click', () => showPage(currentMode));
-    document.querySelector('.teacher-tabs').addEventListener('click', e => {
+    uploadBtn.addEventListener('click', uploadAllPending);
+    document.querySelector('.teacher-tabs')?.addEventListener('click', e => {
         if (e.target.classList.contains('teacher-tab')) {
             currentTeacherTab = e.target.dataset.tab;
             $$('.teacher-tab').forEach(t => t.classList.remove('active'));
@@ -715,20 +734,102 @@
         }
     });
 
-    // WebSocket
-    socket.on('pointUpdate', handlePointUpdate);
+    // WebSocket 更新
+    socket.on('pointUpdate', async (data) => {
+        await fetchStudents();
+        updateCurrentPointsDisplay();
+        if (currentMode === 'leader') renderLeaderPanel();
+        if (rankingPage.style.display !== 'none') renderRanking();
+        addNotification(`${data.name} ${data.reason} ${data.change>0?'+'+data.change:data.change}`);
+    });
     socket.on('dataChanged', async () => {
         await fetchStudents();
         await fetchTasks();
         populateStudentSelect();
+        updateCurrentPointsDisplay();
         if (currentMode === 'leader') renderLeaderPanel();
         if (rankingPage.style.display !== 'none') renderRanking();
         if (teacherPage.style.display !== 'none') renderTeacherPanel();
     });
 
+    // ---------- 自动预录学生名单 ----------
+    const DEFAULT_STUDENTS = [
+        // 粘贴你之前的48个学生数据
+         // 第一组
+        { name: '周梓浚', group: '第一组', points: 0, isLeader: true },
+        { name: '甘思博', group: '第一组', points: 0, isLeader: false },
+        { name: '刘高宇', group: '第一组', points: 0, isLeader: false },
+        { name: '产博涛', group: '第一组', points: 0, isLeader: false },
+        { name: '朱霖',   group: '第一组', points: 0, isLeader: false },
+        { name: '熊芮晗', group: '第一组', points: 0, isLeader: false },
+        { name: '李芮菡', group: '第一组', points: 0, isLeader: false },
+        { name: '李雨欣', group: '第一组', points: 0, isLeader: false },
+        { name: '杨宁鑫', group: '第一组', points: 0, isLeader: false },
+        // 第二组
+        { name: '殷舒雅', group: '第二组', points: 0, isLeader: true },
+        { name: '彭祥臻', group: '第二组', points: 0, isLeader: false },
+        { name: '丁志豪', group: '第二组', points: 0, isLeader: false },
+        { name: '王顺昊', group: '第二组', points: 0, isLeader: false },
+        { name: '洪伟',   group: '第二组', points: 0, isLeader: false },
+        { name: '龚淑雅', group: '第二组', points: 0, isLeader: false },
+        { name: '梁宇轩', group: '第二组', points: 0, isLeader: false },
+        { name: '周擎昊', group: '第二组', points: 0, isLeader: false },
+        // 第三组
+        { name: '田兴博', group: '第三组', points: 0, isLeader: true },
+        { name: '戈攀新', group: '第三组', points: 0, isLeader: false },
+        { name: '徐梦妮', group: '第三组', points: 0, isLeader: false },
+        { name: '田艺宁', group: '第三组', points: 0, isLeader: false },
+        { name: '谢申博', group: '第三组', points: 0, isLeader: false },
+        { name: '赵守信', group: '第三组', points: 0, isLeader: false },
+        { name: '张天佑', group: '第三组', points: 0, isLeader: false },
+        { name: '何宇健', group: '第三组', points: 0, isLeader: false },
+        // 第四组
+        { name: '陈啸',   group: '第四组', points: 0, isLeader: true },
+        { name: '王玥婷', group: '第四组', points: 0, isLeader: false },
+        { name: '杜文博', group: '第四组', points: 0, isLeader: false },
+        { name: '孙国川', group: '第四组', points: 0, isLeader: false },
+        { name: '何兢桀', group: '第四组', points: 0, isLeader: false },
+        { name: '余紫涵', group: '第四组', points: 0, isLeader: false },
+        { name: '胡宇晴', group: '第四组', points: 0, isLeader: false },
+        { name: '胡尔博', group: '第四组', points: 0, isLeader: false },
+        // 第五组
+        { name: '庞睿昊', group: '第五组', points: 0, isLeader: true },
+        { name: '万梓辉', group: '第五组', points: 0, isLeader: false },
+        { name: '方夫鑫', group: '第五组', points: 0, isLeader: false },
+        { name: '熊宇浩', group: '第五组', points: 0, isLeader: false },
+        { name: '廖涵艺', group: '第五组', points: 0, isLeader: false },
+        { name: '张好好', group: '第五组', points: 0, isLeader: false },
+        { name: '吴灿',   group: '第五组', points: 0, isLeader: false },
+        { name: '郑茗炜', group: '第五组', points: 0, isLeader: false },
+        // 第六组
+        { name: '邹槿烨', group: '第六组', points: 0, isLeader: true },
+        { name: '吴振雄', group: '第六组', points: 0, isLeader: false },
+        { name: '刘茜',   group: '第六组', points: 0, isLeader: false },
+        { name: '张梓钰', group: '第六组', points: 0, isLeader: false },
+        { name: '余梓彤', group: '第六组', points: 0, isLeader: false },
+        { name: '张子墨', group: '第六组', points: 0, isLeader: false },
+        { name: '艾欣煜', group: '第六组', points: 0, isLeader: false },
+        { name: '何劲',   group: '第六组', points: 0, isLeader: false }
+    ];
+        
+
+    async function autoInsertStudents() {
+        if (STUDENTS.length === 0) {
+            for (const s of DEFAULT_STUDENTS) {
+                await fetch(API_BASE + '/api/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(s)
+                });
+            }
+            await fetchStudents();
+        }
+    }
+
     // 初始化
     (async function init() {
         await fetchStudents();
+        await autoInsertStudents();
         await fetchTasks();
         if (STUDENTS.length === 0) {
             alert('数据库中没有学生，请先进入教师管理添加学生！');
@@ -736,9 +837,11 @@
         currentStudentId = STUDENTS.length ? STUDENTS[0]._id : null;
         if (currentStudentId) studentSelect.value = currentStudentId;
         populateStudentSelect();
+        updateCurrentPointsDisplay();
         renderStudentTasks();
+        renderPendingList();
         showPage('student');
-        addNotification('系统已启动，连接服务器成功！');
+        addNotification('系统已启动，操作先本地生效，记得点上传哦');
     })();
 })();
 </script>
