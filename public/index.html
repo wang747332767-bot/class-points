@@ -419,17 +419,21 @@
         uploadBtn.disabled = false;
         uploadBtn.innerHTML = '📤 上传数据 <span class="badge" id="pendingBadge" style="display:none;">0</span>';
         addNotification(`✅ 成功上传 ${successCount} 条操作`);
-        // 刷新数据
         await fetchStudents();
         updateCurrentPointsDisplay();
     }
 
     // ---------- 学生界面 ----------
-    function populateStudentSelect() {
-        studentSelect.innerHTML = STUDENTS.map(s =>
-            `<option value="${s._id}" ${s._id === currentStudentId ? 'selected' : ''}>${s.name} (${s.group})</option>`
+    function populateStudentSelect(filterLeadersOnly = false) {
+        let list = STUDENTS;
+        if (filterLeadersOnly) {
+            list = STUDENTS.filter(s => s.isLeader);
+        }
+        studentSelect.innerHTML = list.map(s =>
+            `<option value="${s._id}" ${s._id === currentStudentId ? 'selected' : ''}>${s.name} (${s.group}) ${s.isLeader ? '👑' : ''}</option>`
         ).join('');
     }
+
     function renderStudentTasks() {
         studentTasksContainer.innerHTML = TASKS.map(t => {
             const positive = t.points >= 0;
@@ -467,6 +471,24 @@
     }
 
     // ---------- 组长界面 ----------
+    function setLeaderGroupByCurrentStudent() {
+        const student = getStudentById(currentStudentId);
+        if (student && student.isLeader) {
+            leaderGroup = student.group;
+            return true;
+        }
+        // 如果当前选中的不是组长，自动选择第一个组长
+        const firstLeader = STUDENTS.find(s => s.isLeader);
+        if (firstLeader) {
+            currentStudentId = firstLeader._id;
+            leaderGroup = firstLeader.group;
+            studentSelect.value = currentStudentId;
+            updateCurrentPointsDisplay();
+            return true;
+        }
+        return false;
+    }
+
     function renderLeaderPanel() {
         if (!leaderGroup) return;
         const members = STUDENTS.filter(s => s.group === leaderGroup);
@@ -681,12 +703,17 @@
         hideAllPages();
         if (page === 'student') {
             studentPage.style.display = 'block';
+            populateStudentSelect(false);  // 显示全部学生
             renderStudentTasks();
             renderPendingList();
         } else if (page === 'leader') {
-            const leaderStudent = STUDENTS.find(s => s.isLeader);
-            if (!leaderStudent) return alert('没有组长，请老师指定');
-            leaderGroup = leaderStudent.group;
+            // 组长模式：下拉框只显示组长
+            populateStudentSelect(true);
+            // 确保当前选中的是组长，否则自动跳到第一个组长
+            if (!setLeaderGroupByCurrentStudent()) {
+                alert('没有组长，请先在教师管理中设置组长');
+                return;
+            }
             leaderSelected.clear();
             leaderPage.style.display = 'block';
             renderLeaderPanel();
@@ -700,7 +727,6 @@
             currentTeacherTab = 'students';
             renderTeacherPanel();
         }
-        // 学生选择器在学生/组长模式都显示，排行榜和老师管理隐藏
         const studentSelector = $('#studentSelectorContainer');
         if (studentSelector) {
             studentSelector.style.display = (page === 'ranking' || page === 'teacher') ? 'none' : 'flex';
@@ -716,10 +742,25 @@
             showPage(currentMode);
         }
     });
+
     studentSelect.addEventListener('change', () => {
         currentStudentId = studentSelect.value;
         updateCurrentPointsDisplay();
+        // 如果当前是组长模式，切换下拉组长应更新管理的组
+        if (currentMode === 'leader') {
+            const student = getStudentById(currentStudentId);
+            if (student && student.isLeader) {
+                leaderGroup = student.group;
+                leaderSelected.clear();
+                renderLeaderPanel();
+            } else {
+                // 理论上不会发生，因为下拉已过滤为组长，但做防御
+                setLeaderGroupByCurrentStudent();
+                renderLeaderPanel();
+            }
+        }
     });
+
     $('#toRankingBtn').addEventListener('click', () => showPage('ranking'));
     $('#backToMainBtn').addEventListener('click', () => showPage(currentMode));
     $('#toTeacherBtn').addEventListener('click', () => showPage('teacher'));
@@ -745,7 +786,7 @@
     socket.on('dataChanged', async () => {
         await fetchStudents();
         await fetchTasks();
-        populateStudentSelect();
+        populateStudentSelect(currentMode === 'leader');
         updateCurrentPointsDisplay();
         if (currentMode === 'leader') renderLeaderPanel();
         if (rankingPage.style.display !== 'none') renderRanking();
@@ -754,8 +795,6 @@
 
     // ---------- 自动预录学生名单 ----------
     const DEFAULT_STUDENTS = [
-        // 粘贴你之前的48个学生数据
-         // 第一组
         { name: '周梓浚', group: '第一组', points: 0, isLeader: true },
         { name: '甘思博', group: '第一组', points: 0, isLeader: false },
         { name: '刘高宇', group: '第一组', points: 0, isLeader: false },
@@ -765,7 +804,6 @@
         { name: '李芮菡', group: '第一组', points: 0, isLeader: false },
         { name: '李雨欣', group: '第一组', points: 0, isLeader: false },
         { name: '杨宁鑫', group: '第一组', points: 0, isLeader: false },
-        // 第二组
         { name: '殷舒雅', group: '第二组', points: 0, isLeader: true },
         { name: '彭祥臻', group: '第二组', points: 0, isLeader: false },
         { name: '丁志豪', group: '第二组', points: 0, isLeader: false },
@@ -774,7 +812,6 @@
         { name: '龚淑雅', group: '第二组', points: 0, isLeader: false },
         { name: '梁宇轩', group: '第二组', points: 0, isLeader: false },
         { name: '周擎昊', group: '第二组', points: 0, isLeader: false },
-        // 第三组
         { name: '田兴博', group: '第三组', points: 0, isLeader: true },
         { name: '戈攀新', group: '第三组', points: 0, isLeader: false },
         { name: '徐梦妮', group: '第三组', points: 0, isLeader: false },
@@ -783,7 +820,6 @@
         { name: '赵守信', group: '第三组', points: 0, isLeader: false },
         { name: '张天佑', group: '第三组', points: 0, isLeader: false },
         { name: '何宇健', group: '第三组', points: 0, isLeader: false },
-        // 第四组
         { name: '陈啸',   group: '第四组', points: 0, isLeader: true },
         { name: '王玥婷', group: '第四组', points: 0, isLeader: false },
         { name: '杜文博', group: '第四组', points: 0, isLeader: false },
@@ -792,7 +828,6 @@
         { name: '余紫涵', group: '第四组', points: 0, isLeader: false },
         { name: '胡宇晴', group: '第四组', points: 0, isLeader: false },
         { name: '胡尔博', group: '第四组', points: 0, isLeader: false },
-        // 第五组
         { name: '庞睿昊', group: '第五组', points: 0, isLeader: true },
         { name: '万梓辉', group: '第五组', points: 0, isLeader: false },
         { name: '方夫鑫', group: '第五组', points: 0, isLeader: false },
@@ -801,7 +836,6 @@
         { name: '张好好', group: '第五组', points: 0, isLeader: false },
         { name: '吴灿',   group: '第五组', points: 0, isLeader: false },
         { name: '郑茗炜', group: '第五组', points: 0, isLeader: false },
-        // 第六组
         { name: '邹槿烨', group: '第六组', points: 0, isLeader: true },
         { name: '吴振雄', group: '第六组', points: 0, isLeader: false },
         { name: '刘茜',   group: '第六组', points: 0, isLeader: false },
@@ -811,7 +845,6 @@
         { name: '艾欣煜', group: '第六组', points: 0, isLeader: false },
         { name: '何劲',   group: '第六组', points: 0, isLeader: false }
     ];
-        
 
     async function autoInsertStudents() {
         if (STUDENTS.length === 0) {
@@ -836,7 +869,7 @@
         }
         currentStudentId = STUDENTS.length ? STUDENTS[0]._id : null;
         if (currentStudentId) studentSelect.value = currentStudentId;
-        populateStudentSelect();
+        populateStudentSelect(false);
         updateCurrentPointsDisplay();
         renderStudentTasks();
         renderPendingList();
